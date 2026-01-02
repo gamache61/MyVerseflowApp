@@ -1,0 +1,16 @@
+{
+  "short_name": "Verseflow",
+  "name": "MyverseflowApp",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    }
+  ],
+  "start_url": "./index.html?v=2",
+  "background_color": "#121212",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#121212"
+}
