@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VerseFlow - Songwriting Assistant</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #4db8ff; 
+            --accent-chorus: #ffcc00; 
+            --accent-bridge: #ff4d4d;
+            --border-color: #333;
+            --secondary-text: #888;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding-bottom: 100px;
+        }
+
+        /* HEADER & METADATA */
+        header { margin-bottom: 20px; }
+        .title-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        input#song-title {
+            background: transparent; border: none; color: white;
+            font-size: 24px; font-weight: bold; flex: 1; font-family: inherit;
+            border-bottom: 1px solid transparent;
+        }
+        input#song-title:focus { outline: none; border-bottom: 1px solid var(--accent-color); }
+
+        .meta-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .meta-input {
+            background: #222; border: 1px solid #333; color: white;
+            padding: 10px; border-radius: 6px; width: 45%; font-size: 14px;
+        }
+        .meta-input::placeholder { color: #666; }
+
+        /* TOOL BAR */
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+        button.tool-btn {
+            background-color: var(--card-bg); color: var(--accent-color);
+            border: 1px solid var(--border-color); padding: 8px 12px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; flex: 1;
+        }
+
+        /* SONG BLOCKS */
+        .block {
+            background-color: var(--card-bg); border-radius: 12px; padding: 20px;
+            margin-bottom: 20px; border-left: 5px solid var(--accent-color); position: relative;
+        }
+        .block.Chorus { border-left-color: var(--accent-chorus); }
+        .block.Bridge { border-left-color: var(--accent-bridge); }
+        .block-header {
+            display: flex; justify-content: space-between; margin-bottom: 10px;
+            font-size: 12px; color: var(--secondary-text); text-transform: uppercase; font-weight: bold;
+        }
+        .delete-btn { cursor: pointer; color: #ff4d4d; padding: 5px; }
+        textarea {
+            width: 100%; background: transparent; border: none; color: white;
+            font-size: 18px; line-height: 1.5; resize: none; height: auto;
+            min-height: 60px; font-family: inherit; overflow: hidden;
+        }
+        textarea:focus { outline: none; }
+        .stats {
+            margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px;
+            text-align: right; font-size: 14px; font-weight: bold; color: #4db8ff; 
+        }
+
+        /* CONTROLS */
+        .controls { display: flex; gap: 10px; margin-bottom: 30px; }
+        .add-btn {
+            flex: 1; background-color: var(--card-bg); color: white; border: none;
+            padding: 15px; border-radius: 20px; cursor: pointer; font-weight: 600;
+        }
+        .reset-section {
+            text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;
+        }
+        .reset-btn {
+            background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d;
+            padding: 10px 20px; border-radius: 8px; font-size: 12px; cursor: pointer;
+        }
+
+        /* MODAL COMMON */
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
+            justify-content: center; align-items: flex-end;
+        }
+        .modal-content {
+            background-color: #222; width: 100%; max-width: 600px; height: 85vh;
+            border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; margin-bottom: 20px;
+            border-bottom: 1px solid #333; padding-bottom: 15px;
+        }
+        .modal-header h3 { margin: 0; color: white; }
+        .close-txt { color: #ff4d4d; cursor: pointer; font-weight: bold; }
+
+        /* RHYME SPECIFIC */
+        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        input#rhyme-search { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #333; color: white; font-size: 16px; }
+        .search-btn { background: var(--accent-color); border: none; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .results-list { flex: 1; overflow-y: auto; }
+        .rhyme-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .toggle-row { display: flex; gap: 20px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; }
+        .toggle-opt { color: var(--secondary-text); cursor: pointer; font-weight: bold; }
+        .toggle-opt.active { color: var(--accent-color); text-decoration: underline; }
+
+        /* GUIDE SPECIFIC */
+        .guide-body { overflow-y: auto; color: #ddd; line-height: 1.6; padding-bottom: 20px; }
+        .guide-section { margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .guide-section:last-child { border-bottom: none; }
+        .guide-section h4 { color: var(--accent-color); margin-bottom: 15px; font-size: 18px; border-left: 3px solid var(--accent-color); padding-left: 10px;}
+        .guide-item { margin-bottom: 15px; }
+        .guide-item strong { color: white; display: block; margin-bottom: 4px; }
+        .structure-box { background: #333; padding: 10px; border-radius: 8px; font-family: monospace; color: var(--accent-chorus); margin-top: 5px; font-size: 13px; }
+        .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px; font-weight: bold; color: #000; }
+        .tag.slow { background: #4db8ff; }
+        .tag.fast { background: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="title-row">
+            <input type="text" id="song-title" placeholder="Untitled Song" oninput="saveSong()">
+        </div>
+        <div class="meta-row">
+            <input type="number" id="song-bpm" class="meta-input" placeholder="BPM (e.g. 100)" oninput="saveSong()">
+            <input type="text" id="song-key" class="meta-input" placeholder="Key (e.g. G)" oninput="saveSong()">
+        </div>
+        <div class="toolbar">
+            <button class="tool-btn" onclick="openModal('rhymeModal')">🔍 Rhyme Tool</button>
+            <button class="tool-btn" onclick="openModal('guideModal')">📚 Structure & Theory</button>
+        </div>
+    </header>
+
+    <div id="canvas"></div>
+
+    <div class="controls">
+        <button class="add-btn" onclick="addBlock('Verse')">+ Verse</button>
+        <button class="add-btn" onclick="addBlock('Chorus')">+ Chorus</button>
+        <button class="add-btn" onclick="addBlock('Bridge')">+ Bridge</button>
+    </div>
+
+    <div class="reset-section">
+        <button class="reset-btn" onclick="hardReset()">⚠️ Reset App / Clear Data</button>
+    </div>
+</div>
+
+<div id="rhymeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Rhyme Finder</h3>
+            <span class="close-txt" onclick="closeModal('rhymeModal')">Close</span>
+        </div>
+        <div class="search-box">
+            <input type="text" id="rhyme-search" placeholder="Enter word...">
+            <button class="search-btn" onclick="fetchRhymes()">Find</button>
+        </div>
+        <div class="toggle-row">
+            <span id="opt-perfect" class="toggle-opt active" onclick="setRhymeType('perfect')">Perfect</span>
+            <span id="opt-near" class="toggle-opt" onclick="setRhymeType('near')">Near/Slant</span>
+        </div>
+        <div id="rhyme-results" class="results-list"></div>
+    </div>
+</div>
+
+<div id="guideModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Songwriting Cheat Sheet</h3>
+            <span class="close-txt" onclick="closeModal('guideModal')">Close</span>
+        </div>
+        <div class="guide-body">
+            
+            <div class="guide-section">
+                <h4>🎵 Music Theory Vibe Check</h4>
+                
+                <div class="guide-item">
+                    <strong>BPM (Speed / Tempo)</strong>
+                    <div style="font-size: 13px; color: #aaa; margin-top:5px;">
+                        • <strong>60-80:</strong> Ballad / R&B / Country Waltz <span class="tag slow">Slow</span><br>
+                        • <strong>80-105:</strong> Americana / Folk / Mid-Tempo<br>
+                        • <strong>110-128:</strong> Pop / Dance / Upbeat<br>
+                        • <strong>130+:</strong> Rock / Bluegrass / Train Beat <span class="tag fast">Fast</span>
+                    </div>
+                </div>
+
+                <div class="guide-item">
+                    <strong>KEY (Mood)</strong>
+                    <div style="font-size: 13px; color: #aaa; margin-top:5px;">
+                        • <strong>Major (C, G, D):</strong> Happy, Bright, Triumphant.<br>
+                        • <strong>Minor (Cm, Am, Em):</strong> Sad, Serious, Moody, Dark.
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h4>🏗️ Structure Types</h4>
+                <div class="guide-item">
+                    <strong>The "Pop Standard"</strong>
+                    <div class="structure-box">Verse 1 - Chorus - Verse 2 - Chorus - Bridge - Chorus</div>
+                </div>
+                <div class="guide-item">
+                    <strong>The "Country Storyteller"</strong>
+                    <div class="structure-box">V1 - Chorus - V2 - Chorus - Solo/Bridge - Chorus - Tag</div>
+                    <div style="font-size: 12px; color: #888; margin-top:5px;">*The "Tag" repeats the last line of the song.</div>
+                </div>
+                <div class="guide-item">
+                    <strong>Hip-Hop "16 & 8"</strong>
+                    <div class="structure-box">Intro - Verse (16 bars) - Hook (8 bars) - Verse (16) - Hook</div>
+                </div>
+                <div class="guide-item">
+                    <strong>The "AABA" (Folk/Jazz)</strong>
+                    <div class="structure-box">Verse - Verse - Bridge - Verse</div>
+                </div>
+                <div class="guide-item">
+                    <strong>Blues/Rock Loop</strong>
+                    <div class="structure-box">Verse - Verse - Solo - Verse (Repeating Pattern)</div>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <h4>📖 Definitions</h4>
+                <div class="guide-item">
+                    <strong>Verse</strong>: Tells the story. Lower energy.
+                </div>
+                <div class="guide-item">
+                    <strong>Chorus/Hook</strong>: The main message. Catchy. Highest energy.
+                </div>
+                <div class="guide-item">
+                    <strong>Bridge</strong>: A twist or change in perspective/melody.
+                </div>
+                <div class="guide-item">
+                    <strong>Tag (Country)</strong>: Repeating the very last line of lyrics at the end of the song for emphasis.
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- SAFE LOAD ---
+    let blocks = [];
+    let savedTitle = '';
+    let savedBPM = '';
+    let savedKey = '';
+    
+    try {
+        blocks = JSON.parse(localStorage.getItem('verseflow-blocks')) || [{ id: Date.now(), type: 'Verse', text: '' }];
+        savedTitle = localStorage.getItem('verseflow-title') || 'Untitled Song';
+        savedBPM = localStorage.getItem('verseflow-bpm') || '';
+        savedKey = localStorage.getItem('verseflow-key') || '';
+    } catch (e) {
+        blocks = [{ id: Date.now(), type: 'Verse', text: '' }];
+    }
+
+    document.getElementById('song-title').value = savedTitle;
+    document.getElementById('song-bpm').value = savedBPM;
+    document.getElementById('song-key').value = savedKey;
+    renderBlocks();
+
+    // --- MAIN FUNCTIONS ---
+    function saveSong() {
+        const title = document.getElementById('song-title').value;
+        const bpm = document.getElementById('song-bpm').value;
+        const key = document.getElementById('song-key').value;
+        
+        localStorage.setItem('verseflow-title', title);
+        localStorage.setItem('verseflow-bpm', bpm);
+        localStorage.setItem('verseflow-key', key);
+        localStorage.setItem('verseflow-blocks', JSON.stringify(blocks));
+    }
+
+    function addBlock(type) {
+        blocks.push({ id: Date.now(), type: type, text: '' });
+        saveSong();
+        renderBlocks();
+    }
+
+    function removeBlock(id) {
+        if(confirm('Delete block?')) {
+            blocks = blocks.filter(b => b.id !== id);
+            saveSong();
+            renderBlocks();
+        }
+    }
+
+    function updateText(id, value) {
+        const block = blocks.find(b => b.id === id);
+        if(block) block.text = value;
+        
+        const el = document.getElementById(`text-${id}`);
+        if(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        try {
+            const lastLine = value.trim().split('\n').pop() || "";
+            const count = countLineSyllables(lastLine);
+            const badge = document.getElementById(`syl-${id}`);
+            if(badge) badge.innerText = `Last Line: ${count} syl`;
+        } catch(e) {}
+
+        saveSong();
+    }
+
+    function renderBlocks() {
+        const canvas = document.getElementById('canvas');
+        canvas.innerHTML = '';
+        
+        blocks.forEach((block) => {
+            let count = 0;
+            try {
+                const lastLine = block.text.trim().split('\n').pop() || "";
+                count = countLineSyllables(lastLine);
+            } catch(e) {}
+
+            const html = `
+                <div class="block ${block.type}">
+                    <div class="block-header">
+                        <span>${block.type}</span>
+                        <span class="delete-btn" onclick="removeBlock(${block.id})">✕</span>
+                    </div>
+                    <textarea 
+                        id="text-${block.id}" 
+                        name="lyrics-${block.id}"
+                        oninput="updateText(${block.id}, this.value)" 
+                        placeholder="Write lyrics here..."
+                        spellcheck="true"
+                        autocorrect="on"
+                        lang="en">${block.text}</textarea>
+                    <div class="stats" id="syl-${block.id}">
+                        Last Line: ${count} syl
+                    </div>
+                </div>
+            `;
+            canvas.insertAdjacentHTML('beforeend', html);
+            
+            setTimeout(() => {
+                const el = document.getElementById(`text-${block.id}`);
+                if(el) {
+                    el.style.height = 'auto';
+                    el.style.height = el.scrollHeight + 'px';
+                }
+            }, 50);
+        });
+    }
+
+    // --- SYLLABLE ALGORITHM ---
+    function countSyllables(word) {
+        if(!word) return 0;
+        word = word.toLowerCase().replace(/[^a-z]/g, '');
+        if (word.length <= 3) return 1;
+        word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+        word = word.replace(/^y/, '');
+        const matches = word.match(/[aeiouy]{1,2}/g);
+        return matches ? matches.length : 1;
+    }
+
+    function countLineSyllables(line) {
+        if (!line) return 0;
+        const words = line.trim().split(/\s+/);
+        if (words.length === 1 && words[0] === '') return 0;
+        return words.reduce((acc, word) => acc + countSyllables(word), 0);
+    }
+
+    function hardReset() {
+        if(confirm("Reset app? This deletes your lyrics.")) {
+            localStorage.clear();
+            if(navigator.serviceWorker) {
+                navigator.serviceWorker.getRegistrations().then(r => {
+                    for(let reg of r) reg.unregister(); 
+                });
+            }
+            window.location.reload(true);
+        }
+    }
+
+    // --- MODAL SYSTEM ---
+    let rhymeType = 'perfect';
+    
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+        if(id === 'rhymeModal') setTimeout(() => document.getElementById('rhyme-search').focus(), 100);
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    function setRhymeType(type) {
+        rhymeType = type;
+        document.getElementById('opt-perfect').classList.toggle('active', type === 'perfect');
+        document.getElementById('opt-near').classList.toggle('active', type === 'near');
+        fetchRhymes();
+    }
+
+    async function fetchRhymes() {
+        const query = document.getElementById('rhyme-search').value;
+        const div = document.getElementById('rhyme-results');
+        if(!query) return;
+        div.innerHTML = 'Loading...';
+        try {
+            const rel = rhymeType === 'perfect' ? 'rel_rhy' : 'rel_nry';
+            const res = await fetch(`https://api.datamuse.com/words?${rel}=${query}&max=50`);
+            const data = await res.json();
+            div.innerHTML = '';
+            if(!data.length) div.innerHTML = 'No rhymes found.';
+            data.forEach(i => {
+                div.insertAdjacentHTML('beforeend', 
+                `<div class="rhyme-item"><span>${i.word}</span><span style="color:#888; font-size:12px">${i.numSyllables} syl</span></div>`);
+            });
+        } catch(e) { div.innerHTML = 'Error.'; }
+    }
+
+    window.onclick = function(e) { 
+        if(e.target.classList.contains('modal')) e.target.style.display = 'none';
+    }
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+</script>
+</body>
+</html>
