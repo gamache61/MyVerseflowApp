@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyverseflowApp</title>
+    
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="icon192.ico"> 
+    <link rel="manifest" href="manifest.json?v=22">
+    <meta name="theme-color" content="#121212">
+    
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #4db8ff; 
+            --accent-chorus: #ffcc00; 
+            --accent-bridge: #ff4d4d;
+            --border-color: #333;
+            --secondary-text: #888;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 20px; display: flex; justify-content: center;
+        }
+
+        .container { width: 100%; max-width: 600px; padding-bottom: 100px; }
+        header { margin-bottom: 20px; text-align: center; }
+        
+        input#song-title {
+            background: transparent; border: none; color: white;
+            font-size: 28px; font-weight: bold; width: 100%; font-family: inherit;
+            border-bottom: 2px solid #333; text-align: center; padding-bottom: 10px;
+        }
+        input#song-title:focus { outline: none; border-bottom: 2px solid var(--accent-color); }
+
+        textarea#song-desc {
+            background: #1a1a1a; border: 1px solid #333; color: var(--secondary-text);
+            font-size: 15px; width: 100%; font-family: inherit; resize: none;
+            text-align: left; margin-top: 15px; padding: 12px; border-radius: 8px;
+            box-sizing: border-box; outline: none; line-height: 1.4;
+        }
+        textarea#song-desc:focus { border-color: #444; color: #ccc; }
+
+        .toolbar { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+        button.tool-btn {
+            background-color: var(--card-bg); color: var(--accent-color);
+            border: 1px solid var(--border-color); padding: 12px;
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; flex: 1;
+        }
+
+        .block {
+            background-color: var(--card-bg); border-radius: 12px; padding: 20px;
+            margin-bottom: 20px; border-left: 5px solid var(--accent-color); position: relative;
+        }
+        .block.Chorus { border-left-color: var(--accent-chorus); }
+        .block.Bridge { border-left-color: var(--accent-bridge); }
+        
+        .block-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+            font-size: 12px; color: var(--secondary-text); text-transform: uppercase; font-weight: bold;
+        }
+
+        .block-controls { display: flex; gap: 12px; align-items: center; }
+        .move-btn { cursor: pointer; color: var(--accent-color); font-size: 16px; padding: 2px 5px; }
+        .delete-btn { cursor: pointer; color: #ff4d4d; font-size: 16px; padding: 2px 5px; }
+
+        textarea.lyric-input {
+            width: 100%; background: transparent; border: none; color: white;
+            font-size: 18px; line-height: 1.5; resize: none; height: auto;
+            min-height: 60px; font-family: inherit; overflow: hidden;
+        }
+        textarea.lyric-input:focus { outline: none; }
+
+        .stats {
+            margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 8px;
+            text-align: right; font-size: 14px; font-weight: bold; color: #4db8ff; 
+        }
+
+        .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .add-btn {
+            flex: 1; background-color: var(--card-bg); color: white; border: none;
+            padding: 15px; border-radius: 20px; cursor: pointer; font-weight: 600; min-width: 80px;
+        }
+        .copy-btn {
+            width: 100%; background-color: var(--accent-color); color: #000; border: none;
+            padding: 15px; border-radius: 20px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 16px;
+        }
+
+        .template-row { display: flex; gap: 5px; margin-bottom: 10px; }
+        .temp-btn { background: #333; color: #ccc; border: 1px solid #444; padding: 5px 10px; border-radius: 5px; font-size: 10px; cursor: pointer; }
+
+        .reset-section { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #333; }
+        .reset-btn { background: transparent; border: 1px solid #ff4d4d; color: #ff4d4d; padding: 10px 20px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);
+            justify-content: center; align-items: flex-end;
+        }
+        .modal-content {
+            background-color: #222; width: 100%; max-width: 600px; height: 85vh;
+            border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column;
+        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: white; }
+        .close-txt { color: #ff4d4d; cursor: pointer; font-weight: bold; }
+        .results-list { flex: 1; overflow-y: auto; padding-top: 10px; }
+        
+        .theory-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #444; }
+        .theory-section h4 { color: var(--accent-color); margin-bottom: 8px; font-size: 17px; }
+        .theory-section p, .theory-section li { color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+        
+        .rhyme-item { display: inline-block; background: #333; padding: 8px 12px; margin: 4px; border-radius: 6px; font-size: 14px; }
+        .mini-cheat-sheet { background: #1a1a1a; padding: 15px; border-radius: 10px; margin-top: 15px; border: 1px solid #333; }
+        .mini-cheat-sheet h5 { color: var(--accent-color); margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase; }
+        .mini-cheat-sheet p { font-size: 12px; color: #aaa; margin: 0 0 8px 0; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <input type="text" id="song-title" placeholder="Untitled Song" oninput="saveSong()">
+        <textarea id="song-desc" rows="1" placeholder="Describe the story or vibe of this song..." oninput="autoResizeDesc(); saveSong()"></textarea>
+        
+        <div class="toolbar">
+            <button class="tool-btn" onclick="openModal('rhymeModal')">🔍 Rhymes And Theory</button>
+            <button class="tool-btn" onclick="openModal('guideModal')">📚 Songwriting Bible</button>
+        </div>
+    </header>
+
+    <div id="canvas"></div>
+
+    <div class="template-row">
+        <span style="font-size: 11px; color: #888; align-self: center;">Add Template:</span>
+        <button class="temp-btn" onclick="addBlock('Verse', 'A\nB\nA\nB')">ABAB Verse</button>
+        <button class="temp-btn" onclick="addBlock('Verse', 'A\nA\nB\nB')">AABB Verse</button>
+    </div>
+
+    <div class="controls">
+        <button class="add-btn" onclick="addBlock('Verse')">+ Verse</button>
+        <button class="add-btn" onclick="addBlock('Chorus')">+ Chorus</button>
+        <button class="add-btn" onclick="addBlock('Bridge')">+ Bridge</button>
+        <button class="copy-btn" onclick="copyLyrics()">📋 Copy Full Lyrics</button>
+    </div>
+
+    <div class="reset-section">
+        <button class="reset-btn" onclick="hardReset()">⚠️ Reset App / Clear Data</button>
+    </div>
+</div>
+
+<div id="rhymeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Rhymes And Theory</h3>
+            <span class="close-txt" onclick="closeModal('rhymeModal')">Close</span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="rhyme-input" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: white;" placeholder="Search rhyme...">
+            <button onclick="findRhymes()" style="background: var(--accent-color); color: black; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold;">Search</button>
+        </div>
+        <div id="rhyme-results" class="results-list"></div>
+        <div class="mini-cheat-sheet">
+            <h5>Letter Theory Breakdown</h5>
+            <p><strong>A:</strong> Your first rhyme sound. <strong>B:</strong> A new rhyme sound.</p>
+            <p><strong>ABAB:</strong> Lines 1&3 rhyme, 2&4 rhyme. <strong>AABB:</strong> 1&2 rhyme, 3&4 rhyme.</p>
+        </div>
+    </div>
+</div>
+
+<div id="guideModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Songwriting Bible</h3>
+            <span class="close-txt" onclick="closeModal('guideModal')">Close</span>
+        </div>
+        <div class="results-list">
+            <div class="theory-section">
+                <h4>1. Sensory Imagery (VAK)</h4>
+                <p>Use <strong>Visual</strong> (Neon), <strong>Auditory</strong> (Hum), and <strong>Kinesthetic</strong> (Cold floor) to ground your lyrics.</p>
+            </div>
+            <div class="theory-section">
+                <h4>2. Opening Hooks</h4>
+                <p>Start with a <strong>Setting</strong> (3 AM), an <strong>Action</strong> (I left), or a <strong>Statement</strong> (I'm done).</p>
+            </div>
+            <div class="theory-section">
+                <h4>3. Chorus Lift</h4>
+                <p>Use <strong>Vowel Extension</strong> (Stay, Go) to allow singers to hold big notes.</p>
+            </div>
+            <div class="theory-section">
+                <h4>4. Story Arc</h4>
+                <p><strong>Verse 1:</strong> Stasis. <strong>Verse 2:</strong> Conflict. <strong>Bridge:</strong> Realization.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let blocks = [];
+
+    try {
+        const savedBlocks = JSON.parse(localStorage.getItem('verseflow-blocks'));
+        blocks = (savedBlocks && savedBlocks.length > 0) ? savedBlocks : [{ id: Date.now(), type: 'Verse', text: '' }];
+        document.getElementById('song-title').value = localStorage.getItem('verseflow-title') || '';
+        document.getElementById('song-desc').value = localStorage.getItem('verseflow-desc') || '';
+        autoResizeDesc();
+    } catch (e) { blocks = [{ id: Date.now(), type: 'Verse', text: '' }]; }
+
+    renderBlocks();
+
+    function saveSong() {
+        localStorage.setItem('verseflow-title', document.getElementById('song-title').value);
+        localStorage.setItem('verseflow-desc', document.getElementById('song-desc').value);
+        localStorage.setItem('verseflow-blocks', JSON.stringify(blocks));
+    }
+
+    function autoResizeDesc() {
+        const desc = document.getElementById('song-desc');
+        desc.style.height = 'auto';
+        desc.style.height = desc.scrollHeight + 'px';
+    }
+
+    function addBlock(type, template = '') {
+        blocks.push({ id: Date.now(), type: type, text: template });
+        saveSong();
+        renderBlocks();
+    }
+
+    function removeBlock(id) {
+        if(confirm('Delete block?')) {
+            blocks = blocks.filter(b => b.id !== id);
+            saveSong();
+            renderBlocks();
+        }
+    }
+
+    function moveBlock(id, direction) {
+        const index = blocks.findIndex(b => b.id === id);
+        if (direction === 'up' && index > 0) [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
+        if (direction === 'down' && index < blocks.length - 1) [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
+        saveSong();
+        renderBlocks();
+    }
+
+    function updateText(id, value) {
+        const block = blocks.find(b => b.id === id);
+        if(block) block.text = value;
+        const el = document.getElementById(`text-${id}`);
+        el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px';
+        const lines = value.trim().split('\n');
+        document.getElementById(`syl-${id}`).innerText = `Last Line: ${countLineSyllables(lines.pop())} syl`;
+        saveSong();
+    }
+
+    function renderBlocks() {
+        const canvas = document.getElementById('canvas');
+        canvas.innerHTML = '';
+        blocks.forEach((block) => {
+            canvas.insertAdjacentHTML('beforeend', `
+                <div class="block ${block.type}">
+                    <div class="block-header">
+                        <span>${block.type}</span>
+                        <div class="block-controls">
+                            <span class="move-btn" onclick="moveBlock(${block.id}, 'up')">↑</span>
+                            <span class="move-btn" onclick="moveBlock(${block.id}, 'down')">↓</span>
+                            <span class="delete-btn" onclick="removeBlock(${block.id})">✕</span>
+                        </div>
+                    </div>
+                    <textarea id="text-${block.id}" class="lyric-input" oninput="updateText(${block.id}, this.value)" placeholder="Write lyrics...">${block.text}</textarea>
+                    <div class="stats" id="syl-${block.id}">Last Line: ${countLineSyllables(block.text.trim().split('\n').pop())} syl</div>
+                </div>`);
+            const el = document.getElementById(`text-${block.id}`);
+            el.style.height = el.scrollHeight + 'px';
+        });
+    }
+
+    function copyLyrics() {
+        const title = document.getElementById('song-title').value || "Untitled Song";
+        const desc = document.getElementById('song-desc').value || "";
+        let fullText = `${title}\n${desc ? '(' + desc + ')\n' : ''}\n`;
+        blocks.forEach((block) => {
+            if(block.text.trim()) fullText += `[${block.type.toUpperCase()}]\n${block.text.trim()}\n\n`;
+        });
+        navigator.clipboard.writeText(fullText).then(() => alert("Lyrics copied!"));
+    }
+
+    async function findRhymes() {
+        const word = document.getElementById('rhyme-input').value;
+        const resultsDiv = document.getElementById('rhyme-results');
+        if(!word) return;
+        resultsDiv.innerHTML = 'Searching...';
+        try {
+            const response = await fetch(`https://api.datamuse.com/words?rel_rhy=${word}`);
+            const data = await response.json();
+            resultsDiv.innerHTML = data.length ? data.slice(0, 40).map(item => `<span class="rhyme-item">${item.word}</span>`).join('') : 'No rhymes found.';
+        } catch (err) { resultsDiv.innerHTML = 'Error.'; }
+    }
+
+    function countSyllables(word) {
+        if(!word) return 0;
+        word = word.toLowerCase().replace(/[^a-z]/g, '');
+        if (word.length <= 3) return 1;
+        word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+        const matches = word.match(/[aeiouy]{1,2}/g);
+        return matches ? matches.length : 1;
+    }
+
+    function countLineSyllables(line) {
+        if (!line) return 0;
+        return line.trim().split(/\s+/).reduce((acc, word) => acc + countSyllables(word), 0);
+    }
+
+    async function hardReset() {
+        if(confirm("Reset app? This deletes your lyrics but keeps your API key.")) {
+            const api_key = localStorage.getItem('api_key');
+            localStorage.clear();
+            if(api_key) localStorage.setItem('api_key', api_key);
+            window.location.reload(true);
+        }
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
+</script>
+</body>
+</html>
