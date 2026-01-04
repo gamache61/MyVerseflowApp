@@ -1,0 +1,54 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "MyVerseflowApp",
+  "description": "An advanced songwriting and lyric flow application.",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "MyVerseflowApp",
+  "start_url": "/",
+  "theme_color": "#121212",
+  "icons": [
+    {
+      "src": "https://gamache61.github.io/MyVerseflowApp/icon192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "isSquare": true,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 192,
+      "is512x512": false,
+      "is256x256": false,
+      "is192x192": true
+    },
+    {
+      "src": "https://gamache61.github.io/MyVerseflowApp/icon512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "isSquare": true,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 512,
+      "is512x512": true,
+      "is256x256": false,
+      "is192x192": false
+    },
+    {
+      "src": "https://gamache61.github.io/MyVerseflowApp/maskableicon512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable",
+      "isSquare": false,
+      "isPng": true,
+      "isWebp": false,
+      "isJpg": false,
+      "width": 512,
+      "is512x512": true,
+      "is256x256": false,
+      "is192x192": false
+    }
+  ]
+}
