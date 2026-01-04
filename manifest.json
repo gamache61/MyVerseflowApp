@@ -1,6 +1,6 @@
 {
   "name": "MyverseflowApp",
-  "short_name": "Verseflow",
+  "short_name": "MyVerseflowApp",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#121212",
@@ -25,4 +25,5 @@
       "purpose": "maskable"
     }
   ]
+
 }
